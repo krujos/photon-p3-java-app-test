@@ -14,15 +14,24 @@ cf target -o javatests -s tests
 git clone https://github.com/pivotal-customer0/hello-java
 
 cd hello-java
-cf push hello-java
+cf push hello-java -p target/demo-0.0.1-SNAPSHOT.jar
 if [ $? != 0 ]; then
 	>&2 echo "Failed to push hello-java to $CF_API"
 	exit 1
 fi
 
-curl hello-java.$CF_APPS_DOMAIN
-	if [[ $? != 0 ]]; then
+curl hello-java.$CF_APPS_DOMAIN | grep "Hello world"
+if [[ $? != 0 ]]; then
 	>&2 echo "Failed find hello-java at hello-java.$CF_APPS_DOMAIN"
+	exit 1
+fi
+
+curl hello-java.$CF_APPS_DOMAIN/kill
+sleep 60
+curl hello-java.$CF_APPS_DOMAIN | grep "Hello world"
+
+if [[ $? != 0 ]]; then
+	>&2 echo "Failed find hello-java at hello-java.$CF_APPS_DOMAIN after killing it."
 	exit 1
 fi
 
